@@ -7,6 +7,9 @@ on:
       - 'v*.[0-9]'
   pull_request:
 
+permissions:  # added using https://github.com/step-security/secure-workflows
+  contents: read
+
 jobs:
   tests:
     name: Run tests
@@ -18,12 +21,17 @@ jobs:
     env:
       MIX_ENV: test
     steps:
-      - uses: actions/checkout@v3
-      - uses: erlef/setup-elixir@v1
+      - name: Harden Runner
+        uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95
+        with:
+          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
+      - uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
+      - uses: erlef/setup-elixir@8a52153811d9049cdfa73a1f387e21b604267bea
         with:
           otp-version: ${{ matrix.otp }}
           elixir-version: ${{ matrix.elixir }}
-      - uses: actions/cache@v3
+      - uses: actions/cache@9df7d7c016256c51d661e5d26a8632ccd0581680
         with:
           path: deps
           key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
